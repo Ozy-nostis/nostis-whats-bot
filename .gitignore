@@ -1,0 +1,22 @@
+# Dependências
+node_modules/
+
+# Dados sensíveis e gerados
+src/data/auth/
+src/data/state.json
+qr.png
+
+# Build
+*.exe
+dist/
+build/
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs e temporários
+*.log
+*.tmp

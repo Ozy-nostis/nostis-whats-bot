@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bot WhatsApp - Controle</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="panel groups-panel">
+      <h2>Grupos</h2>
+      <input id="search" type="text" placeholder="Filtrar grupos..." />
+      <ul id="groups-list" class="groups-list">
+        <li class="empty">Carregando...</li>
+      </ul>
+      <div class="footer-info">
+        <span id="groups-count">0 selecionados</span>
+      </div>
+    </aside>
+
+    <main class="panel controls-panel">
+      <h1>Controle do Bot</h1>
+      <div id="status" class="status">Carregando...</div>
+      <div class="buttons">
+        <button id="on">▶ Ligar</button>
+        <button id="off">⏸ Desligar</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
