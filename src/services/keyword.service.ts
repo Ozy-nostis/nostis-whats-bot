@@ -1,19 +1,19 @@
 // src/services/keyword.service.ts
-import { KEYWORD_RESPONSES, type KeywordResponse } from "../data/keywords";
+import { keywordStore, type KeywordRule } from "../core/keyword-store";
 
 export class KeywordService {
   /**
-   * Verifica se uma mensagem contém uma palavra-chave e retorna a regra correspondente.
+   * Verifica se uma mensagem bate com alguma regra ativa e fora do cooldown
+   * para o grupo informado.
    */
-  public findMatchingResponse(message: string): KeywordResponse | undefined {
-    const lowerCaseMessage = message.toLowerCase();
+  public findMatchingResponse(message: string, jid: string): KeywordRule | undefined {
+    const rule = keywordStore.findMatch(message);
+    if (!rule) return undefined;
+    if (keywordStore.isOnCooldown(rule.id, jid)) return undefined;
+    return rule;
+  }
 
-    for (const rule of KEYWORD_RESPONSES) {
-      const hasKeyword = rule.keywords.some((keyword) =>
-        lowerCaseMessage.includes(keyword.toLowerCase())
-      );
-      if (hasKeyword) return rule;
-    }
-    return undefined;
+  public markTriggered(ruleId: string, jid: string): void {
+    keywordStore.markTriggered(ruleId, jid);
   }
 }

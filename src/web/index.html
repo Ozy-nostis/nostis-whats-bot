@@ -10,6 +10,14 @@
   <div class="layout">
     <aside class="panel groups-panel">
       <h2>Grupos</h2>
+      <div id="wa-status" class="wa-status">Verificando conexão...</div>
+      <div class="groups-toolbar">
+        <button id="refresh-groups-btn" class="secondary">🔄 Atualizar</button>
+      </div>
+      <div class="groups-toolbar">
+        <button id="select-all-groups-btn" class="secondary">Selecionar todos</button>
+        <button id="deselect-all-groups-btn" class="secondary">Desmarcar todos</button>
+      </div>
       <input id="search" type="text" placeholder="Filtrar grupos..." />
       <ul id="groups-list" class="groups-list">
         <li class="empty">Carregando...</li>
@@ -19,14 +27,190 @@
       </div>
     </aside>
 
-    <main class="panel controls-panel">
-      <h1>Controle do Bot</h1>
-      <div id="status" class="status">Carregando...</div>
-      <div class="buttons">
-        <button id="on">▶ Ligar</button>
-        <button id="off">⏸ Desligar</button>
+    <main class="panel main-panel">
+      <div class="controls-row">
+        <h1>Controle do Bot</h1>
+        <div id="status" class="status">Carregando...</div>
+        <div class="buttons">
+          <button id="on">▶ Ligar</button>
+          <button id="off">⏸ Desligar</button>
+        </div>
       </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="rules-panel">Regras de Resposta</button>
+        <button class="tab-btn" data-tab="campaigns-panel">📢 Propaganda</button>
+        <button class="tab-btn" data-tab="metrics-panel">📊 Métricas</button>
+      </div>
+
+      <section id="rules-panel" class="tab-panel rules-section">
+        <div class="rules-header">
+          <h2>Regras de Resposta Automática</h2>
+          <button id="new-rule-btn">+ Nova regra</button>
+        </div>
+        <ul id="rules-list" class="rules-list">
+          <li class="empty">Carregando...</li>
+        </ul>
+      </section>
+
+      <section id="campaigns-panel" class="tab-panel rules-section hidden">
+        <div class="rules-header">
+          <h2>Campanhas de Propaganda</h2>
+          <button id="new-campaign-btn">+ Nova campanha</button>
+        </div>
+        <ul id="campaigns-list" class="rules-list">
+          <li class="empty">Carregando...</li>
+        </ul>
+      </section>
+
+      <section id="metrics-panel" class="tab-panel metrics-section hidden">
+        <div class="rules-header">
+          <h2>Métricas de Chamadas</h2>
+          <input id="metrics-search" type="text" placeholder="Filtrar por grupo ou pessoa..." />
+        </div>
+        <div id="metrics-summary" class="metrics-summary"></div>
+        <div class="metrics-table-wrap">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Grupo</th>
+                <th>Pessoa</th>
+                <th>Gatilho às</th>
+                <th>Chamou no privado</th>
+                <th>Valor (R$)</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="metrics-tbody">
+              <tr><td colspan="7" class="empty">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
+  </div>
+
+  <div id="rule-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="rule-modal-title">Nova regra</h2>
+
+      <label for="rule-keywords">Mensagens que ativam o gatilho (uma por linha, precisa ser exatamente igual)</label>
+      <textarea id="rule-keywords" rows="4" placeholder="uber on&#10;chama o motorista"></textarea>
+
+      <label for="rule-responses">Respostas possíveis (uma por linha, escolhida aleatoriamente)</label>
+      <textarea id="rule-responses" rows="4" placeholder="On, chama pv&#10;pv"></textarea>
+
+      <label for="rule-cooldown">Cooldown entre respostas (minutos)</label>
+      <input id="rule-cooldown" type="number" min="0" step="1" value="0" />
+
+      <label>Como enviar a resposta</label>
+      <div class="media-options">
+        <label class="radio-label">
+          <input type="radio" name="rule-reply-mode" value="quote" checked>
+          Respondendo a mensagem (reply)
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="rule-reply-mode" value="plain">
+          Mensagem solta no grupo
+        </label>
+      </div>
+
+      <label>Reagir à mensagem-gatilho (opcional)</label>
+      <div class="reaction-options">
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="" checked>
+          <span>Nenhuma</span>
+        </label>
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="❤️">
+          <span class="emoji">❤️</span>
+        </label>
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="👍">
+          <span class="emoji">👍</span>
+        </label>
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="🙏">
+          <span class="emoji">🙏</span>
+        </label>
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="🚀">
+          <span class="emoji">🚀</span>
+        </label>
+        <label class="reaction-choice">
+          <input type="radio" name="rule-reaction" value="🔥">
+          <span class="emoji">🔥</span>
+        </label>
+      </div>
+
+      <label class="checkbox-label">
+        <input id="rule-track-metrics" type="checkbox" />
+        Rastrear métricas (registra grupo, pessoa e horário; depois é possível ver quem chamou no privado)
+      </label>
+
+      <label class="checkbox-label">
+        <input id="rule-enabled" type="checkbox" checked />
+        Regra ativa
+      </label>
+
+      <div class="modal-buttons">
+        <button id="rule-cancel" class="secondary">Cancelar</button>
+        <button id="rule-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="campaign-modal" class="modal hidden">
+    <div class="modal-content campaign-modal-content">
+      <h2 id="campaign-modal-title">Nova campanha</h2>
+
+      <label for="campaign-name">Nome da campanha</label>
+      <input id="campaign-name" type="text" placeholder="Ex: Promoção de sexta-feira" />
+
+      <label for="campaign-message">Mensagem</label>
+      <textarea id="campaign-message" rows="3" placeholder="Texto da propaganda..."></textarea>
+
+      <label>Mídia (opcional)</label>
+      <div class="media-options">
+        <label class="radio-label"><input type="radio" name="media-type" value="none" checked> Sem mídia</label>
+        <label class="radio-label"><input type="radio" name="media-type" value="sticker"> Figurinha</label>
+        <label class="radio-label"><input type="radio" name="media-type" value="image"> Imagem com legenda</label>
+      </div>
+      <div id="campaign-sticker-source" class="sticker-source-options hidden">
+        <button type="button" id="campaign-pick-from-gallery-btn" class="secondary">🖼️ Escolher da galeria</button>
+        <span class="or-divider">ou envie um arquivo abaixo</span>
+      </div>
+      <input id="campaign-media-file" type="file" accept="image/*" class="hidden" />
+      <div id="campaign-media-preview" class="media-preview hidden">
+        <img id="campaign-media-img" alt="Pré-visualização" />
+        <button id="campaign-media-remove" type="button" class="secondary">Remover mídia</button>
+      </div>
+
+      <label for="campaign-interval">Intervalo entre envios (segundos)</label>
+      <input id="campaign-interval" type="number" min="1" step="1" value="5" />
+
+      <label>Grupos de destino desta campanha</label>
+      <input id="campaign-group-search" type="text" placeholder="Filtrar grupos..." />
+      <ul id="campaign-groups-list" class="groups-list campaign-groups-list"></ul>
+      <div class="footer-info"><span id="campaign-groups-count">0 selecionado(s)</span></div>
+
+      <div class="modal-buttons">
+        <button id="campaign-cancel" class="secondary">Cancelar</button>
+        <button id="campaign-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sticker-gallery-modal" class="modal hidden">
+    <div class="modal-content sticker-gallery-content">
+      <h2>Galeria de Figurinhas</h2>
+      <p class="gallery-hint">Coletadas automaticamente das figurinhas que circulam nos grupos do bot.</p>
+      <div id="sticker-gallery-grid" class="sticker-gallery-grid"></div>
+      <div class="modal-buttons">
+        <button id="sticker-gallery-cancel" class="secondary">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <script src="/app.js"></script>

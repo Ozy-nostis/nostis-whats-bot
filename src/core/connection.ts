@@ -14,10 +14,15 @@ import { logger } from "../utils/logger";
 import { botState, type GroupInfo } from "./state";
 
 let currentSock: WASocket | null = null;
+let connected = false;
 
 export function getSock(): WASocket {
   if (!currentSock) throw new Error("Socket não inicializado");
   return currentSock;
+}
+
+export function isWhatsAppConnected(): boolean {
+  return connected;
 }
 
 export async function connectToWhatsApp(): Promise<WASocket> {
@@ -53,16 +58,24 @@ export async function connectToWhatsApp(): Promise<WASocket> {
     }
 
     if (connection === "open") {
+      connected = true;
       logger.info("Bot conectado com sucesso!");
-      void listGroups(sock);
+      void refreshGroups(sock);
     }
 
-    if (
-      connection === "close" &&
-      (lastDisconnect?.error as { output?: { statusCode?: number } })?.output
-        ?.statusCode !== DisconnectReason.loggedOut
-    ) {
-      void connectToWhatsApp();
+    if (connection === "connecting") {
+      connected = false;
+    }
+
+    if (connection === "close") {
+      connected = false;
+
+      if (
+        (lastDisconnect?.error as { output?: { statusCode?: number } })?.output
+          ?.statusCode !== DisconnectReason.loggedOut
+      ) {
+        void connectToWhatsApp();
+      }
     }
   });
 
@@ -76,7 +89,7 @@ export async function connectToWhatsApp(): Promise<WASocket> {
   return sock;
 }
 
-async function listGroups(sock: WASocket): Promise<void> {
+export async function refreshGroups(sock: WASocket): Promise<GroupInfo[]> {
   const groups = await sock.groupFetchAllParticipating();
 
   const list: GroupInfo[] = [];
@@ -106,4 +119,6 @@ async function listGroups(sock: WASocket): Promise<void> {
     console.log("---");
   }
   console.log(`\nTotal: ${list.length} grupos\n`);
+
+  return list;
 }

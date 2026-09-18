@@ -8,11 +8,10 @@ export interface KeywordResponse {
 // Onde é definido a mensagem recebida e a resposta
 export const KEYWORD_RESPONSES: KeywordResponse[] = [
   {
-    keywords: ["uber on"],
+    keywords: ["uber on", "Alguém on", "alguem on", "on?"],
     responses: [
-      "On, chama pv",
-      "pv",
-      "Chama pv"
+      "On, chama pv 🚗",
+      "Chama pv 🚗"
     ],
   },
 ];

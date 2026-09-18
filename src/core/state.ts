@@ -18,6 +18,10 @@ class BotState {
   private _active = true;
   private _groups: GroupInfo[] = [];
   private _enabledGroups = new Set<string>();
+  // Timestamp (segundos, igual ao messageTimestamp do WhatsApp) do momento em
+  // que o bot passou a ficar ativo. Mensagens com timestamp anterior a este
+  // valor são backlog (histórico/offline) e não devem gerar resposta.
+  private _activatedAt = Math.floor(Date.now() / 1000);
 
   constructor() {
     this.load();
@@ -52,8 +56,13 @@ class BotState {
     return this._active;
   }
 
+  get activatedAt(): number {
+    return this._activatedAt;
+  }
+
   enable(): void {
     this._active = true;
+    this._activatedAt = Math.floor(Date.now() / 1000);
     this.save();
   }
 
@@ -85,6 +94,16 @@ class BotState {
   setGroupEnabled(jid: string, enabled: boolean): void {
     if (enabled) this._enabledGroups.add(jid);
     else this._enabledGroups.delete(jid);
+    this.save();
+  }
+
+  enableAllGroups(): void {
+    this._enabledGroups = new Set(this._groups.map((g) => g.jid));
+    this.save();
+  }
+
+  disableAllGroups(): void {
+    this._enabledGroups.clear();
     this.save();
   }
 

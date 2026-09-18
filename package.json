@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "bun build ./src/index.ts --compile --asset=src/web --minify --outfile dist/BotBrinzy.exe"
+  },
   "devDependencies": {
     "@types/bun": "1.4.2",
     "@types/node": "^22.20.3",
