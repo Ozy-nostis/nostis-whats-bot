@@ -2,6 +2,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
 import { isValidStickerWebP } from "baileys-joss";
+import { profileStore } from "./profile-store";
 
 export type CampaignMediaType = "none" | "sticker" | "image";
 
@@ -33,8 +34,13 @@ export interface CampaignInput {
   removeMedia?: boolean;
 }
 
-const CAMPAIGNS_FILE = join(process.cwd(), "src", "data", "campaigns.json");
-const MEDIA_DIR = join(process.cwd(), "src", "data", "campaign-media");
+function campaignsFile(): string {
+  return join(profileStore.activeDir(), "campaigns.json");
+}
+
+function mediaDir(): string {
+  return join(profileStore.activeDir(), "campaign-media");
+}
 
 function extFromMime(mime: string): string {
   if (mime.includes("webp")) return "webp";
@@ -52,12 +58,13 @@ class CampaignStore {
   }
 
   private load(): void {
-    if (!existsSync(CAMPAIGNS_FILE)) {
+    const file = campaignsFile();
+    if (!existsSync(file)) {
       this.campaigns = [];
       return;
     }
     try {
-      this.campaigns = JSON.parse(readFileSync(CAMPAIGNS_FILE, "utf-8")) as Campaign[];
+      this.campaigns = JSON.parse(readFileSync(file, "utf-8")) as Campaign[];
     } catch (err) {
       console.error("Falha ao carregar campaigns.json:", err);
       this.campaigns = [];
@@ -66,11 +73,17 @@ class CampaignStore {
 
   private save(): void {
     try {
-      mkdirSync(dirname(CAMPAIGNS_FILE), { recursive: true });
-      writeFileSync(CAMPAIGNS_FILE, JSON.stringify(this.campaigns, null, 2), "utf-8");
+      const file = campaignsFile();
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, JSON.stringify(this.campaigns, null, 2), "utf-8");
     } catch (err) {
       console.error("Falha ao salvar campaigns.json:", err);
     }
+  }
+
+  /** Recarrega as campanhas do perfil atualmente ativo (chamado ao trocar/importar perfil). */
+  reload(): void {
+    this.load();
   }
 
   list(): Campaign[] {
@@ -83,7 +96,7 @@ class CampaignStore {
 
   getMediaPath(campaign: Campaign): string | null {
     if (!campaign.mediaFile) return null;
-    return join(MEDIA_DIR, campaign.mediaFile);
+    return join(mediaDir(), campaign.mediaFile);
   }
 
   /** Grava a mídia em disco. Para figurinhas, valida que o webp é realmente válido antes de salvar. */
@@ -100,17 +113,18 @@ class CampaignStore {
       }
     }
 
-    mkdirSync(MEDIA_DIR, { recursive: true });
+    const dir = mediaDir();
+    mkdirSync(dir, { recursive: true });
     const ext = media.type === "sticker" ? "webp" : extFromMime(media.mimeType);
     const filename = `${id}-${Date.now()}.${ext}`;
-    writeFileSync(join(MEDIA_DIR, filename), buffer);
+    writeFileSync(join(dir, filename), buffer);
     return { file: filename, mimeType: media.type === "sticker" ? "image/webp" : media.mimeType };
   }
 
   private deleteMediaFile(campaign: Campaign): void {
     if (!campaign.mediaFile) return;
     try {
-      unlinkSync(join(MEDIA_DIR, campaign.mediaFile));
+      unlinkSync(join(mediaDir(), campaign.mediaFile));
     } catch {
       // ignora se já não existir
     }

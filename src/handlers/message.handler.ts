@@ -1,22 +1,32 @@
-import type { WASocket, proto, WAMessage } from "baileys-joss";
+import type { WASocket, WAMessage } from "baileys-joss";
 import { toNumber } from "baileys-joss";
 import { KeywordService } from "../services/keyword.service";
-import { NotificationService } from "../services/notification.service";
 import { StickerCollectorService } from "../services/sticker-collector.service";
+import { responseService } from "../services/response.service";
+import { identityService } from "../services/identity.service";
 import { botState } from "../core/state";
 import { callLeadStore } from "../core/lead-store";
+import { settingsStore } from "../core/settings-store";
+import { banStore } from "../core/ban-store";
+import { callerStore } from "../core/caller-store";
+import { groupDelayStore } from "../core/group-delay-store";
+import { phoneFromJid } from "../utils/jid";
+import { CONFIG } from "../config";
+import { logger } from "../utils/logger";
+
+function nameLooksLikeAdmin(pushName: string | null | undefined): boolean {
+  if (!pushName) return false;
+  return /adm/i.test(pushName);
+}
 
 export class MessageHandler {
   private keywordService = new KeywordService();
-  private notificationService = new NotificationService();
   private stickerCollector = new StickerCollectorService();
 
-  public async handle(sock: WASocket, msg: proto.IWebMessageInfo): Promise<void> {
+  public async handle(sock: WASocket, msg: WAMessage): Promise<void> {
     if (!msg.key || msg.key.fromMe) return;
 
-    // Ignora backlog: histórico e mensagens que chegaram enquanto o bot
-    // estava desconectado/inativo não devem gerar resposta quando ele
-    // (re)conectar ou for reativado.
+    // Ignora backlog: histórico e mensagens que chegaram enquanto o bot estava desconectado/inativo
     const messageTimestamp = toNumber(msg.messageTimestamp);
     if (messageTimestamp && messageTimestamp < botState.activatedAt) return;
 
@@ -24,14 +34,32 @@ export class MessageHandler {
     if (!remoteJid) return;
 
     if (!remoteJid.endsWith("@g.us")) {
-      // Mensagem privada: correlaciona com o gatilho mais recente dessa pessoa,
-      // se houver, pra alimentar as métricas de "chamou no privado".
+      // Mensagem privada de alguém banido: avisa e não processa como contato normal
+      if (banStore.isBanned(remoteJid)) {
+        try {
+          await sock.sendMessage(remoteJid, { text: CONFIG.banWarningMessage });
+        } catch (err) {
+          logger.error({ err }, "Falha ao avisar número banido");
+        }
+        return;
+      }
+
+      // Mensagem privada: correlaciona com métricas e registra contato
       callLeadStore.markPrivateContact(remoteJid);
+      callerStore.registerCall(remoteJid, msg.pushName ?? null);
       return;
     }
 
-    // Coleta de figurinhas roda independente do bot estar ligado/desligado para
-    // respostas automáticas, pra alimentar a galeria usada nas campanhas de propaganda.
+    // Resolve LID para telefone real
+    const participantJid = await identityService.resolveParticipantJid(sock, msg, remoteJid);
+
+    // Pessoa banida: ignora
+    if (banStore.isBanned(participantJid)) return;
+
+    // Ignora nomes de administrador caso configurado
+    if (settingsStore.get().ignoreAdminNames && nameLooksLikeAdmin(msg.pushName)) return;
+
+    // Coleta figurinhas vistas para a galeria
     if (msg.message?.stickerMessage) {
       void this.stickerCollector.collect(sock, msg, remoteJid);
     }
@@ -57,37 +85,32 @@ export class MessageHandler {
         ruleId: rule.id,
         groupJid: remoteJid,
         groupName,
-        callerJid: msg.key.participant ?? remoteJid,
+        callerJid: participantJid,
         callerName: msg.pushName ?? null,
       });
+      callerStore.registerCall(participantJid, msg.pushName ?? null);
     }
 
     if (rule.reactionEmoji) {
-      try {
-        await sock.sendMessage(remoteJid, {
-          react: { text: rule.reactionEmoji, key: msg.key },
-        });
-      } catch (err) {
-        console.error("Falha ao reagir na mensagem-gatilho:", err);
-      }
+      void responseService.sendReaction(sock, remoteJid, rule.reactionEmoji, msg.key);
     }
-
-    const randomResponse =
-      rule.responses[Math.floor(Math.random() * rule.responses.length)];
-
-    await sock.sendMessage(
-      remoteJid,
-      { text: randomResponse },
-      rule.replyToTrigger ? { quoted: msg as WAMessage } : {}
-    );
 
     this.keywordService.markTriggered(rule.id, remoteJid);
 
-    await this.notificationService.send(
-      "Mensagem Enviada",
-      `Respondido no grupo ${groupName}: "${randomResponse}"`
-    );
+    // Número na lista "sem resposta": conta gatilho/métrica mas não envia texto
+    if (!settingsStore.isNoReplyNumber(phoneFromJid(participantJid))) {
+      const randomResponse =
+        rule.responses[Math.floor(Math.random() * rule.responses.length)];
 
-    console.log(`Resposta enviada para ${groupName}: ${randomResponse}`);
+      void responseService.sendDelayedResponse(
+        sock,
+        remoteJid,
+        randomResponse,
+        rule,
+        msg,
+        groupDelayStore.get(remoteJid),
+        groupName
+      );
+    }
   }
 }

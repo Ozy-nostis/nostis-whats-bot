@@ -6,11 +6,13 @@ import makeWASocket, {
 import P from "pino";
 import QRCode from "qrcode";
 
-import { join } from "path";
+import { dirname } from "path";
+import { mkdirSync } from "fs";
 import Bun from "bun"
 
 import { MessageHandler } from "../handlers/message.handler";
 import { logger } from "../utils/logger";
+import { PATHS } from "../config/paths";
 import { botState, type GroupInfo } from "./state";
 
 let currentSock: WASocket | null = null;
@@ -26,7 +28,8 @@ export function isWhatsAppConnected(): boolean {
 }
 
 export async function connectToWhatsApp(): Promise<WASocket> {
-  const authFolder = join(process.cwd(), "src", "data", "auth");
+  const authFolder = PATHS.auth;
+  mkdirSync(authFolder, { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
   const sock = makeWASocket({
@@ -41,7 +44,8 @@ export async function connectToWhatsApp(): Promise<WASocket> {
   sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
     if (qr) {
       try {
-        const qrPath = join(process.cwd(), "qr.png");
+        const qrPath = PATHS.qrCode;
+        mkdirSync(dirname(qrPath), { recursive: true });
         await QRCode.toFile(qrPath, qr, { width: 400 });
         logger.info(`QR Code gerado em: ${qrPath}`);
 

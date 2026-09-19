@@ -1,8 +1,8 @@
-import { existsSync, writeFileSync, unlinkSync, readFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { existsSync, writeFileSync, unlinkSync, readFileSync, mkdirSync } from "fs";
+import { dirname } from "path";
+import { PATHS } from "../config/paths";
 
-const LOCK_FILE_PATH = join(tmpdir(), "meu-bot-whatsapp.lock");
+const LOCK_FILE_PATH = PATHS.lockFile;
 
 function isProcessAlive(pid: number): boolean {
   try {
@@ -15,6 +15,8 @@ function isProcessAlive(pid: number): boolean {
 }
 
 export function acquireLock(): void {
+  mkdirSync(dirname(LOCK_FILE_PATH), { recursive: true });
+
   if (existsSync(LOCK_FILE_PATH)) {
     const content = readFileSync(LOCK_FILE_PATH, "utf-8").trim();
     const pid = Number(content);

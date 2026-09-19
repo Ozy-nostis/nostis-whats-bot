@@ -27,10 +27,17 @@
       </div>
     </aside>
 
+    <div id="panel-resizer" class="panel-resizer" title="Arraste pra ajustar a largura"></div>
+
     <main class="panel main-panel">
       <div class="controls-row">
         <h1>Controle do Bot</h1>
         <div id="status" class="status">Carregando...</div>
+        <div class="profile-bar">
+          <select id="profile-select" title="Perfil ativo"></select>
+          <button id="manage-profiles-btn" class="secondary">👤 Perfis</button>
+        </div>
+        <button id="settings-btn" class="secondary">⚙️ Configurações</button>
         <div class="buttons">
           <button id="on">▶ Ligar</button>
           <button id="off">⏸ Desligar</button>
@@ -87,6 +94,7 @@
             </tbody>
           </table>
         </div>
+        <div id="metrics-pagination" class="pagination"></div>
       </section>
     </main>
   </div>
@@ -104,16 +112,33 @@
       <label for="rule-cooldown">Cooldown entre respostas (minutos)</label>
       <input id="rule-cooldown" type="number" min="0" step="1" value="0" />
 
-      <label>Como enviar a resposta</label>
-      <div class="media-options">
-        <label class="radio-label">
-          <input type="radio" name="rule-reply-mode" value="quote" checked>
-          Respondendo a mensagem (reply)
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="rule-reply-mode" value="plain">
-          Mensagem solta no grupo
-        </label>
+      <div id="rule-reply-mode-wrap">
+        <label>Como enviar a resposta</label>
+        <div class="media-options">
+          <label class="radio-label">
+            <input type="radio" name="rule-reply-mode" value="quote" checked>
+            Respondendo a mensagem (reply)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="rule-reply-mode" value="plain">
+            Mensagem solta no grupo
+          </label>
+        </div>
+      </div>
+
+      <label class="checkbox-label">
+        <input id="rule-use-url-button" type="checkbox" />
+        🔘 Enviar como botão que leva direto pro privado (experimental)
+      </label>
+      <p class="warning-text">
+        ⚠️ Usa um recurso não-oficial da lib (finge ser conta Business pra desenhar
+        o botão). Pode renderizar errado em alguns aparelhos ou chamar atenção
+        indevida da Meta pra essa conta — teste num grupo de teste antes de usar
+        pra valer.
+      </p>
+      <div id="rule-button-text-wrap" class="hidden">
+        <label for="rule-button-text">Texto do botão</label>
+        <input id="rule-button-text" type="text" placeholder="📲 Chama no PV" />
       </div>
 
       <label>Reagir à mensagem-gatilho (opcional)</label>
@@ -198,6 +223,47 @@
       <div class="modal-buttons">
         <button id="campaign-cancel" class="secondary">Cancelar</button>
         <button id="campaign-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profiles-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Perfis</h2>
+      <p class="gallery-hint">Cada perfil tem suas próprias regras, campanhas e grupos habilitados.</p>
+      <ul id="profiles-list" class="rules-list profiles-list"></ul>
+
+      <label for="new-profile-name">Novo perfil</label>
+      <input id="new-profile-name" type="text" placeholder="Nome do novo perfil" />
+
+      <label for="new-profile-clone-from">Começar a partir de</label>
+      <select id="new-profile-clone-from"></select>
+
+      <div class="modal-buttons">
+        <button id="profiles-close" class="secondary">Fechar</button>
+        <button id="create-profile-btn">+ Criar perfil</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Configurações</h2>
+
+      <label class="checkbox-label">
+        <input id="settings-ignore-adm" type="checkbox" />
+        Ignorar contatos com "ADM" no nome (evita responder quem também é operador)
+      </label>
+
+      <label for="settings-no-reply-numbers">Números sem resposta (um por linha; o gatilho dispara e conta na métrica, mas o bot não responde)</label>
+      <textarea id="settings-no-reply-numbers" rows="4" placeholder="5511999999999"></textarea>
+
+      <label>Números banidos</label>
+      <ul id="settings-bans-list" class="rules-list settings-bans-list"></ul>
+
+      <div class="modal-buttons">
+        <button id="settings-cancel" class="secondary">Cancelar</button>
+        <button id="settings-save">Salvar</button>
       </div>
     </div>
   </div>

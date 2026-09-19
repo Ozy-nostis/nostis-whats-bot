@@ -1,12 +1,14 @@
 // src/index.ts
+import { ensureDirectories } from "./config/paths";
 import { acquireLock } from "./core/single-instance";
 import { connectToWhatsApp } from "./core/connection";
 import { logger } from "./utils/logger";
 import { startDashboard } from "./core/dashboard";
 
 async function main() {
+  ensureDirectories();
   acquireLock();
-  startDashboard(3000);
+  startDashboard();
   await connectToWhatsApp();
 }
 

@@ -1,6 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "fs";
-import { join, dirname } from "path";
+import { writeFileSync, mkdirSync, unlinkSync } from "fs";
 import { randomUUID, createHash } from "crypto";
+import { JsonFileStore } from "./base-store";
+import { PATHS } from "../config/paths";
+import { CONFIG } from "../config";
 
 export interface LibrarySticker {
   id: string;
@@ -11,69 +13,39 @@ export interface LibrarySticker {
   timesSeen: number;
 }
 
-const LIBRARY_FILE = join(process.cwd(), "src", "data", "sticker-library.json");
-const MEDIA_DIR = join(process.cwd(), "src", "data", "sticker-library-media");
-
-/** Limite pra não deixar a galeria crescer sem controle; descarta as mais antigas. */
-const MAX_STICKERS = 200;
-
-class StickerLibrary {
-  private stickers: LibrarySticker[] = [];
-
+class StickerLibrary extends JsonFileStore<LibrarySticker[]> {
   constructor() {
-    this.load();
-  }
-
-  private load(): void {
-    if (!existsSync(LIBRARY_FILE)) {
-      this.stickers = [];
-      return;
-    }
-    try {
-      this.stickers = JSON.parse(readFileSync(LIBRARY_FILE, "utf-8")) as LibrarySticker[];
-    } catch (err) {
-      console.error("Falha ao carregar sticker-library.json:", err);
-      this.stickers = [];
-    }
-  }
-
-  private save(): void {
-    try {
-      mkdirSync(dirname(LIBRARY_FILE), { recursive: true });
-      writeFileSync(LIBRARY_FILE, JSON.stringify(this.stickers, null, 2), "utf-8");
-    } catch (err) {
-      console.error("Falha ao salvar sticker-library.json:", err);
-    }
+    super(PATHS.stickerLibrary, []);
   }
 
   list(): LibrarySticker[] {
-    return [...this.stickers].sort((a, b) => b.firstSeenAt - a.firstSeenAt);
+    return [...this.data].sort((a, b) => b.firstSeenAt - a.firstSeenAt);
   }
 
   get(id: string): LibrarySticker | undefined {
-    return this.stickers.find((s) => s.id === id);
+    return this.data.find((s) => s.id === id);
   }
 
   getMediaPath(sticker: LibrarySticker): string {
-    return join(MEDIA_DIR, sticker.file);
+    return `${PATHS.stickerMedia}/${sticker.file}`;
   }
 
   /** Chamado quando o bot vê uma figurinha passar em algum grupo. Deduplica por hash do conteúdo. */
   addSeen(buffer: Buffer, groupName: string): void {
     const hash = createHash("sha256").update(buffer).digest("hex");
-    const existing = this.stickers.find((s) => s.hash === hash);
+    const existing = this.data.find((s) => s.hash === hash);
     if (existing) {
       existing.timesSeen++;
       this.save();
       return;
     }
 
-    mkdirSync(MEDIA_DIR, { recursive: true });
+    mkdirSync(PATHS.stickerMedia, { recursive: true });
     const id = randomUUID();
     const filename = `${id}.webp`;
-    writeFileSync(join(MEDIA_DIR, filename), buffer);
+    writeFileSync(`${PATHS.stickerMedia}/${filename}`, buffer);
 
-    this.stickers.unshift({
+    this.data.unshift({
       id,
       file: filename,
       hash,
@@ -82,11 +54,11 @@ class StickerLibrary {
       timesSeen: 1,
     });
 
-    if (this.stickers.length > MAX_STICKERS) {
-      const removed = this.stickers.splice(MAX_STICKERS);
+    if (this.data.length > CONFIG.maxStickers) {
+      const removed = this.data.splice(CONFIG.maxStickers);
       for (const r of removed) {
         try {
-          unlinkSync(join(MEDIA_DIR, r.file));
+          unlinkSync(this.getMediaPath(r));
         } catch {
           // ignora
         }
@@ -104,7 +76,7 @@ class StickerLibrary {
     } catch {
       // ignora se já não existir
     }
-    this.stickers = this.stickers.filter((s) => s.id !== id);
+    this.data = this.data.filter((s) => s.id !== id);
     this.save();
     return true;
   }

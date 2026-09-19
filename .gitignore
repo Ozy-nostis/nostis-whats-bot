@@ -1,15 +1,10 @@
 # Dependências
 node_modules/
 
-# Dados sensíveis e gerados
-src/data/auth/
-src/data/state.json
-src/data/call-leads.json
-src/data/campaigns.json
-src/data/keyword-rules.json
-src/data/sticker-library.json
-src/data/campaign-media/
-src/data/sticker-library-media/
+# Dados locais gerados
+src/data/
+src/core/data/
+data/
 qr.png
 
 # Build

@@ -1,15 +1,27 @@
-# nostis-whats-bot
+# nostis-whats-bot (BotBrinzy)
 
-To install dependencies:
+Bot de automação para WhatsApp com painel de controle web integrado, suporte a perfis, campanhas de mensagens/figurinhas e rastreamento de métricas.
+
+## Instalação de dependências
 
 ```bash
 bun install
 ```
 
-To run:
+## Execução em modo de desenvolvimento
 
 ```bash
-bun run index.ts
+bun start
 ```
 
-This project was created using `bun init` in bun v1.4.2. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+O dashboard estará disponível em: `http://localhost:3000`
+
+## Compilação para Executável (.exe) Standalone
+
+Para gerar o executável autossuficiente (`dist/BotBrinzy.exe`) contendo todo o frontend embutido em memória:
+
+```bash
+bun run build
+```
+
+O executável gerado salva todos os dados de forma persistente em `%APPDATA%\BotBrinzy` (sessão de autenticação, regras, perfis, campanhas, métricas) e arquivos temporários em `%TEMP%\BotBrinzy`.

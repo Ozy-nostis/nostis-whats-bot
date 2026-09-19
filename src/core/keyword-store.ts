@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
+import { profileStore } from "./profile-store";
 
 export interface KeywordRule {
   id: string;
@@ -13,6 +14,15 @@ export interface KeywordRule {
   reactionEmoji: string | null;
   /** Registra métricas (grupo, pessoa, horário) toda vez que essa regra dispara */
   trackMetrics: boolean;
+  /**
+   * Em vez de mandar a resposta como texto, manda um botão de URL que leva
+   * direto pro privado do bot. Experimental: usa um recurso não-oficial da
+   * lib pra renderizar o botão (finge ser conta Business), então ignora
+   * `replyToTrigger` (não dá pra citar a mensagem-gatilho nesse modo).
+   */
+  useUrlButton: boolean;
+  /** Texto do botão quando useUrlButton está ativo. */
+  buttonText: string | null;
   enabled: boolean;
   createdAt: number;
   updatedAt: number;
@@ -25,8 +35,12 @@ export interface KeywordRuleInput {
   replyToTrigger?: boolean;
   reactionEmoji?: string | null;
   trackMetrics?: boolean;
+  useUrlButton?: boolean;
+  buttonText?: string | null;
   enabled?: boolean;
 }
+
+export const DEFAULT_BUTTON_TEXT = "📲 Chama no PV";
 
 /** Conjunto fixo de reações disponíveis na dashboard. */
 export const ALLOWED_REACTIONS = ["❤️", "👍", "🙏", "🚀", "🔥"] as const;
@@ -39,24 +53,33 @@ function normalizeReaction(emoji: string | null | undefined): string | null {
   return emoji;
 }
 
-const RULES_FILE = join(process.cwd(), "src", "data", "keyword-rules.json");
+function rulesFile(): string {
+  return join(profileStore.activeDir(), "keyword-rules.json");
+}
 
-// Regra padrão preservada da configuração original, usada apenas se ainda
-// não existir nenhum arquivo de regras salvo.
-const DEFAULT_RULES: KeywordRule[] = [
-  {
-    id: randomUUID(),
-    keywords: ["uber on"],
-    responses: ["On, chama pv", "pv", "Chama pv"],
-    cooldownMinutes: 0,
-    replyToTrigger: true,
-    reactionEmoji: null,
-    trackMetrics: false,
-    enabled: true,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-];
+// Regra padrão preservada da configuração original, usada apenas quando um
+// perfil ainda não tem nenhum arquivo de regras salvo. É uma função (não uma
+// constante) porque cada perfil novo em branco precisa de um ID e
+// timestamps próprios, não de uma instância compartilhada entre perfis.
+function createDefaultRules(): KeywordRule[] {
+  const now = Date.now();
+  return [
+    {
+      id: randomUUID(),
+      keywords: ["uber on"],
+      responses: ["On, chama pv", "pv", "Chama pv"],
+      cooldownMinutes: 0,
+      replyToTrigger: true,
+      reactionEmoji: null,
+      trackMetrics: false,
+      useUrlButton: false,
+      buttonText: null,
+      enabled: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+}
 
 function normalizeList(items: string[]): string[] {
   return items.map((item) => item.trim()).filter(Boolean);
@@ -71,13 +94,14 @@ class KeywordStore {
   }
 
   private load(): void {
-    if (!existsSync(RULES_FILE)) {
-      this.rules = DEFAULT_RULES;
+    const file = rulesFile();
+    if (!existsSync(file)) {
+      this.rules = createDefaultRules();
       this.save();
       return;
     }
     try {
-      const raw = readFileSync(RULES_FILE, "utf-8");
+      const raw = readFileSync(file, "utf-8");
       const parsed = JSON.parse(raw) as KeywordRule[];
       // Migra regras salvas antes dos campos replyToTrigger/reactionEmoji/trackMetrics
       // existirem, preservando o comportamento anterior (sempre citava, nunca reagia
@@ -87,6 +111,8 @@ class KeywordStore {
         replyToTrigger: rule.replyToTrigger ?? true,
         reactionEmoji: rule.reactionEmoji ?? null,
         trackMetrics: rule.trackMetrics ?? false,
+        useUrlButton: rule.useUrlButton ?? false,
+        buttonText: rule.buttonText ?? null,
       }));
     } catch (err) {
       console.error("Falha ao carregar keyword-rules.json:", err);
@@ -96,11 +122,18 @@ class KeywordStore {
 
   private save(): void {
     try {
-      mkdirSync(dirname(RULES_FILE), { recursive: true });
-      writeFileSync(RULES_FILE, JSON.stringify(this.rules, null, 2), "utf-8");
+      const file = rulesFile();
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, JSON.stringify(this.rules, null, 2), "utf-8");
     } catch (err) {
       console.error("Falha ao salvar keyword-rules.json:", err);
     }
+  }
+
+  /** Recarrega as regras do perfil atualmente ativo (chamado ao trocar/importar perfil). */
+  reload(): void {
+    this.lastTriggered.clear();
+    this.load();
   }
 
   list(): KeywordRule[] {
@@ -121,6 +154,8 @@ class KeywordStore {
       replyToTrigger: input.replyToTrigger ?? true,
       reactionEmoji: normalizeReaction(input.reactionEmoji),
       trackMetrics: input.trackMetrics ?? false,
+      useUrlButton: input.useUrlButton ?? false,
+      buttonText: input.buttonText?.trim() || null,
       enabled: input.enabled ?? true,
       createdAt: now,
       updatedAt: now,
@@ -142,6 +177,8 @@ class KeywordStore {
     if (input.replyToTrigger !== undefined) rule.replyToTrigger = input.replyToTrigger;
     if (input.reactionEmoji !== undefined) rule.reactionEmoji = normalizeReaction(input.reactionEmoji);
     if (input.trackMetrics !== undefined) rule.trackMetrics = input.trackMetrics;
+    if (input.useUrlButton !== undefined) rule.useUrlButton = input.useUrlButton;
+    if (input.buttonText !== undefined) rule.buttonText = input.buttonText?.trim() || null;
     if (input.enabled !== undefined) rule.enabled = input.enabled;
     rule.updatedAt = Date.now();
 

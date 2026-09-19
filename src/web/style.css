@@ -13,7 +13,7 @@ body {
 
 .layout {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: var(--sidebar-width, 340px) 6px 1fr;
   height: 100vh;
 }
 
@@ -25,8 +25,20 @@ body {
 }
 
 .groups-panel {
-  border-right: 1px solid #222;
   background: #0d0d0d;
+  min-width: 0;
+}
+
+.panel-resizer {
+  cursor: col-resize;
+  background: #1a1a1a;
+  border-left: 1px solid #222;
+  border-right: 1px solid #222;
+}
+
+.panel-resizer:hover,
+.panel-resizer.dragging {
+  background: #2563eb;
 }
 
 h1, h2 {
@@ -104,13 +116,33 @@ h1, h2 {
   height: 18px;
   cursor: pointer;
   accent-color: #16a34a;
+  flex-shrink: 0;
 }
+
+.group-delay-input {
+  width: 48px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #eee;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.group-delay-input:focus { border-color: #444; outline: none; }
 
 .groups-list .group-name {
   flex: 1;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .groups-list .group-jid {
@@ -153,6 +185,25 @@ h1, h2 {
   align-items: center;
   gap: 24px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.profile-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#profile-select {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #eee;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  max-width: 180px;
 }
 
 .controls-row h1 {
@@ -288,6 +339,32 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .tag-on  { color: #4ade80; }
 .tag-off { color: #f87171; }
 
+.caller-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.caller-badge-cold { background: #1d4ed8; color: #dbeafe; }
+.caller-badge-warm { background: #d97706; color: #fff7ed; }
+.caller-badge-hot {
+  background: #dc2626;
+  color: #fff;
+  animation: caller-badge-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes caller-badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .55); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+}
+
 .rule-actions {
   display: flex;
   gap: 8px;
@@ -305,7 +382,13 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 
 /* --- Métricas de chamadas --- */
 
-.metrics-section { gap: 0; }
+.metrics-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0;
+}
 
 #metrics-search {
   background: #1a1a1a;
@@ -403,6 +486,22 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .metrics-table .delete-lead {
   padding: 6px 10px;
   font-size: 12px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.pagination button {
+  padding: 8px 14px;
+  font-size: 13px;
 }
 
 .campaign-progress {
@@ -583,6 +682,17 @@ button:disabled { opacity: .4; cursor: not-allowed; }
   margin: 0 0 4px 0;
 }
 
+.warning-text {
+  font-size: 12px;
+  color: #fbbf24;
+  background: #422006;
+  border: 1px solid #78350f;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
 .gallery-empty {
   color: #666;
   font-style: italic;
@@ -619,6 +729,36 @@ button:disabled { opacity: .4; cursor: not-allowed; }
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* --- Perfis / Configurações --- */
+
+.profiles-list, .settings-bans-list {
+  max-height: 220px;
+}
+
+.settings-bans-list li {
+  justify-content: space-between;
+}
+
+.profile-import-row {
+  align-items: center;
+}
+
+.profile-import-row select {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #eee;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.metrics-table .ban-lead,
+.metrics-table .unban-lead {
+  padding: 6px 10px;
+  font-size: 12px;
+  margin-right: 6px;
 }
 
 .sticker-thumb-delete {

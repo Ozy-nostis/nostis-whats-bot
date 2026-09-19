@@ -3,6 +3,7 @@ import type { WASocket } from "baileys-joss";
 import { campaignStore, type Campaign } from "../core/campaign-store";
 import { botState } from "../core/state";
 import { logger } from "../utils/logger";
+import { sleep } from "../utils/sleep";
 
 export interface CampaignSendResult {
   jid: string;
@@ -32,10 +33,6 @@ export function getSendState(campaignId: string): CampaignSendState {
 
 export function isSending(campaignId: string): boolean {
   return sendStates.get(campaignId)?.status === "sending";
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**

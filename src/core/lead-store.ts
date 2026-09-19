@@ -1,6 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
-import { join, dirname } from "path";
+import { JsonFileStore } from "./base-store";
 import { randomUUID } from "crypto";
+import { normalizeJid } from "../utils/jid";
+import { PATHS } from "../config/paths";
+import { CONFIG } from "../config";
 
 export type LeadStatus = "pending" | "closed" | "not_closed";
 
@@ -31,62 +33,19 @@ export interface LeadUpdateInput {
   status?: LeadStatus;
 }
 
-const LEADS_FILE = join(process.cwd(), "src", "data", "call-leads.json");
-
-/** Limite pra não deixar o histórico crescer sem controle. */
-const MAX_LEADS = 500;
-
-/** Uma mensagem privada só é correlacionada a um gatilho disparado nas últimas 24h. */
-const CORRELATION_WINDOW_MS = 24 * 60 * 60 * 1000;
-
 const STATUSES: readonly LeadStatus[] = ["pending", "closed", "not_closed"];
 
-/**
- * Remove o sufixo de dispositivo (ex: ":12") que o WhatsApp às vezes anexa à
- * parte do usuário do JID, preservando o domínio (@s.whatsapp.net / @lid / etc).
- * Ex: "5511999990000:12@s.whatsapp.net" -> "5511999990000@s.whatsapp.net"
- */
-function normalizeJid(jid: string): string {
-  const [userPart, domain] = jid.split("@");
-  const cleanUser = userPart!.split(":")[0];
-  return domain ? `${cleanUser}@${domain}` : cleanUser!;
-}
-
-class CallLeadStore {
-  private leads: CallLead[] = [];
-
+class CallLeadStore extends JsonFileStore<CallLead[]> {
   constructor() {
-    this.load();
-  }
-
-  private load(): void {
-    if (!existsSync(LEADS_FILE)) {
-      this.leads = [];
-      return;
-    }
-    try {
-      this.leads = JSON.parse(readFileSync(LEADS_FILE, "utf-8")) as CallLead[];
-    } catch (err) {
-      console.error("Falha ao carregar call-leads.json:", err);
-      this.leads = [];
-    }
-  }
-
-  private save(): void {
-    try {
-      mkdirSync(dirname(LEADS_FILE), { recursive: true });
-      writeFileSync(LEADS_FILE, JSON.stringify(this.leads, null, 2), "utf-8");
-    } catch (err) {
-      console.error("Falha ao salvar call-leads.json:", err);
-    }
+    super(PATHS.callLeads, []);
   }
 
   list(): CallLead[] {
-    return this.leads;
+    return this.data;
   }
 
   get(id: string): CallLead | undefined {
-    return this.leads.find((l) => l.id === id);
+    return this.data.find((l) => l.id === id);
   }
 
   /** Chamado quando uma regra com rastreamento ativo dispara num grupo. */
@@ -106,9 +65,9 @@ class CallLeadStore {
       updatedAt: now,
     };
 
-    this.leads.unshift(lead);
-    if (this.leads.length > MAX_LEADS) {
-      this.leads.splice(MAX_LEADS);
+    this.data.unshift(lead);
+    if (this.data.length > CONFIG.maxLeads) {
+      this.data.splice(CONFIG.maxLeads);
     }
 
     this.save();
@@ -124,11 +83,11 @@ class CallLeadStore {
     const normalized = normalizeJid(callerJid);
     const now = Date.now();
 
-    const lead = this.leads.find(
+    const lead = this.data.find(
       (l) =>
         l.callerJid === normalized &&
         l.privateContactAt === null &&
-        now - l.triggeredAt <= CORRELATION_WINDOW_MS
+        now - l.triggeredAt <= CONFIG.correlationWindowMs
     );
     if (!lead) return undefined;
 
@@ -158,9 +117,9 @@ class CallLeadStore {
   }
 
   delete(id: string): boolean {
-    const before = this.leads.length;
-    this.leads = this.leads.filter((l) => l.id !== id);
-    if (this.leads.length === before) return false;
+    const before = this.data.length;
+    this.data = this.data.filter((l) => l.id !== id);
+    if (this.data.length === before) return false;
     this.save();
     return true;
   }
