@@ -3,7 +3,7 @@ import { createNotifier } from "notifier-hook";
 import { logger } from "../utils/logger";
 
 export class NotificationService {
-  private notifier = createNotifier({ appName: "Meu Bot WhatsApp" });
+  private notifier = createNotifier({ appName: "BotBrinzy" });
 
   constructor() {
     this.notifier.on("error", (err) =>
