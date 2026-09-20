@@ -1,5 +1,19 @@
 import { state } from "./state.js";
+import { api } from "./api.js";
 import { escapeHtml } from "./utils.js";
+import {
+  icon,
+  notify,
+  confirmDialog,
+  bindModal,
+  openModal,
+  closeModal,
+  flagInvalid,
+  setBusy,
+  bindLineCounter,
+  setTabCount,
+  emptyState,
+} from "./ui.js";
 
 const rulesListEl = document.getElementById("rules-list");
 const newRuleBtn = document.getElementById("new-rule-btn");
@@ -14,41 +28,71 @@ const ruleReplyModeWrap = document.getElementById("rule-reply-mode-wrap");
 const useUrlButtonInput = document.getElementById("rule-use-url-button");
 const buttonTextWrap = document.getElementById("rule-button-text-wrap");
 const buttonTextInput = document.getElementById("rule-button-text");
-const ruleCancelBtn = document.getElementById("rule-cancel");
 const ruleSaveBtn = document.getElementById("rule-save");
 
+const updateKeywordsCount = bindLineCounter(keywordsInput, document.getElementById("rule-keywords-count"), "gatilho", "gatilhos");
+const updateResponsesCount = bindLineCounter(responsesInput, document.getElementById("rule-responses-count"), "resposta", "respostas");
+
+function keywordChips(keywords) {
+  const shown = keywords.slice(0, 3).map((k) => `<span class="kw-chip" title="${escapeHtml(k)}">${escapeHtml(k)}</span>`);
+  if (keywords.length > 3) {
+    const rest = keywords.slice(3).map(escapeHtml).join(", ");
+    shown.push(`<span class="kw-chip kw-more" title="${rest}">+${keywords.length - 3}</span>`);
+  }
+  return shown.join("");
+}
+
+function replyModeMeta(rule) {
+  if (rule.useUrlButton) return { iconName: "smartphone", label: "Botão pro privado" };
+  if (rule.replyToTrigger) return { iconName: "reply", label: "Responde a mensagem" };
+  return { iconName: "message", label: "Mensagem solta" };
+}
+
 export function renderRules() {
+  setTabCount("rules-count", state.allRules.length);
+
   if (state.allRules.length === 0) {
-    rulesListEl.innerHTML = `<li class="empty">Nenhuma regra cadastrada</li>`;
+    rulesListEl.innerHTML = emptyState({
+      iconName: "message",
+      title: "Nenhuma regra cadastrada",
+      text: "Crie uma regra para o bot responder automaticamente quando alguém enviar uma mensagem-gatilho.",
+      cta: { id: "new-rule", label: "Criar primeira regra" },
+    });
+    rulesListEl.querySelector("[data-empty-cta]")?.addEventListener("click", () => openRuleModal(null));
     return;
   }
 
   rulesListEl.innerHTML = state.allRules
-    .map((r) => {
-      const cooldownLabel =
-        r.cooldownMinutes > 0 ? `${r.cooldownMinutes} min` : "sem cooldown";
-      const replyLabel = r.useUrlButton ? "🔘 Botão pro privado" : r.replyToTrigger ? "↩ Reply" : "Mensagem solta";
-      const reactionLabel = r.reactionEmoji ? `<span>Reage: ${r.reactionEmoji}</span>` : "";
-      const metricsLabel = r.trackMetrics ? `<span>📊 Rastreando</span>` : "";
+    .map((r, i) => {
+      const reply = replyModeMeta(r);
+      const preview = r.responses[0] ?? "";
+      const extra = r.responses.length > 1 ? `<span class="muted">+${r.responses.length - 1} variação(ões)</span>` : "";
 
       return `
-      <li class="rule-item ${r.enabled ? "" : "disabled"}">
-        <div class="rule-main">
-          <div class="rule-keywords" title="${escapeHtml(r.keywords.join(", "))}">
-            ${escapeHtml(r.keywords.join(", "))}
-          </div>
-          <div class="rule-meta">
-            <span>${r.responses.length} resposta(s)</span>
-            <span>${cooldownLabel}</span>
-            <span>${replyLabel}</span>
-            ${reactionLabel}
-            ${metricsLabel}
-            <span class="${r.enabled ? "tag-on" : "tag-off"}">${r.enabled ? "Ativa" : "Inativa"}</span>
-          </div>
+      <li class="card rule-item ${r.enabled ? "" : "is-disabled"}" data-id="${r.id}" style="--i:${Math.min(i, 8)}">
+        <div class="card-head">
+          <div class="card-title">${keywordChips(r.keywords)}</div>
+          <label class="switch" title="${r.enabled ? "Desativar regra" : "Ativar regra"}">
+            <input type="checkbox" class="rule-toggle" data-id="${r.id}" ${r.enabled ? "checked" : ""} aria-label="Regra ativa">
+            <span class="switch-track"></span>
+            <span class="switch-label">${r.enabled ? "Ativa" : "Inativa"}</span>
+          </label>
         </div>
-        <div class="rule-actions">
-          <button class="edit-rule" data-id="${r.id}">Editar</button>
-          <button class="delete-rule danger" data-id="${r.id}">Excluir</button>
+
+        <div class="card-preview">${escapeHtml(preview)}${extra}</div>
+
+        <div class="meta">
+          <span class="meta-item">${icon("clock")} ${r.cooldownMinutes > 0 ? `${r.cooldownMinutes} min de cooldown` : "Sem cooldown"}</span>
+          <span class="meta-item">${icon(reply.iconName)} ${reply.label}</span>
+          ${r.reactionEmoji ? `<span class="meta-item">Reage ${r.reactionEmoji}</span>` : ""}
+          ${r.trackMetrics ? `<span class="meta-item">${icon("chart")} Rastreando</span>` : ""}
+        </div>
+
+        <div class="card-foot">
+          <button type="button" class="btn btn-secondary btn-sm edit-rule" data-id="${r.id}">${icon("pencil")} Editar</button>
+          <div class="card-actions end">
+            <button type="button" class="icon-btn icon-btn-sm danger delete-rule" data-id="${r.id}" title="Excluir regra" aria-label="Excluir regra">${icon("trash")}</button>
+          </div>
         </div>
       </li>`;
     })
@@ -60,16 +104,46 @@ export function renderRules() {
   rulesListEl.querySelectorAll(".delete-rule").forEach((btn) => {
     btn.addEventListener("click", () => deleteRule(btn.dataset.id));
   });
+  rulesListEl.querySelectorAll(".rule-toggle").forEach((input) => {
+    input.addEventListener("change", () => toggleRule(input.dataset.id, input));
+  });
 }
 
 export async function refreshRules() {
   try {
-    const r = await fetch("/rules");
-    const { rules } = await r.json();
+    const { rules } = await api("/rules");
     state.allRules = rules;
     renderRules();
   } catch (err) {
     console.error("refreshRules falhou:", err);
+    if (state.allRules.length === 0) {
+      rulesListEl.innerHTML = emptyState({ iconName: "wifi-off", title: "Não foi possível carregar as regras", text: err.message });
+    }
+  }
+}
+
+/** Liga/desliga uma regra direto pelo card (atualização otimista com rollback). */
+async function toggleRule(id, input) {
+  const rule = state.allRules.find((r) => r.id === id);
+  if (!rule) return;
+
+  const enabled = input.checked;
+  const card = input.closest(".card");
+  card.classList.toggle("is-disabled", !enabled);
+  card.querySelector(".switch-label").textContent = enabled ? "Ativa" : "Inativa";
+
+  try {
+    await api(`/rules/${encodeURIComponent(id)}`, { method: "PUT", body: { enabled } });
+    rule.enabled = enabled;
+    notify.success(enabled ? "O bot volta a responder a essa regra." : "A regra ficou salva, mas o bot não vai mais usá-la.", {
+      title: enabled ? "Regra ativada" : "Regra desativada",
+      duration: 2400,
+    });
+  } catch (err) {
+    input.checked = !enabled;
+    card.classList.toggle("is-disabled", enabled);
+    card.querySelector(".switch-label").textContent = enabled ? "Inativa" : "Ativa";
+    notify.error(err.message, { title: "Não foi possível alterar a regra" });
   }
 }
 
@@ -78,11 +152,13 @@ export function openRuleModal(id) {
   const rule = id ? state.allRules.find((r) => r.id === id) : null;
 
   ruleModalTitle.textContent = rule ? "Editar regra" : "Nova regra";
+  ruleSaveBtn.textContent = rule ? "Salvar alterações" : "Salvar regra";
   keywordsInput.value = rule ? rule.keywords.join("\n") : "";
   responsesInput.value = rule ? rule.responses.join("\n") : "";
   cooldownInput.value = rule ? rule.cooldownMinutes : 0;
   trackMetricsInput.checked = rule ? rule.trackMetrics : false;
   enabledInput.checked = rule ? rule.enabled : true;
+  [keywordsInput, responsesInput].forEach((el) => el.classList.remove("is-invalid"));
 
   const replyToTrigger = rule ? rule.replyToTrigger : true;
   document.querySelectorAll('input[name="rule-reply-mode"]').forEach((r) => {
@@ -97,9 +173,10 @@ export function openRuleModal(id) {
   useUrlButtonInput.checked = rule ? !!rule.useUrlButton : false;
   buttonTextInput.value = rule && rule.buttonText ? rule.buttonText : "";
   applyUrlButtonVisibility();
+  updateKeywordsCount();
+  updateResponsesCount();
 
-  ruleModal.classList.remove("hidden");
-  keywordsInput.focus();
+  openModal(ruleModal);
 }
 
 export function applyUrlButtonVisibility() {
@@ -109,7 +186,7 @@ export function applyUrlButtonVisibility() {
 }
 
 export function closeRuleModal() {
-  ruleModal.classList.add("hidden");
+  closeModal(ruleModal);
   state.editingRuleId = null;
 }
 
@@ -130,64 +207,52 @@ export async function saveRule() {
   const useUrlButton = useUrlButtonInput.checked;
   const buttonText = buttonTextInput.value.trim() || null;
 
-  if (keywords.length === 0 || responses.length === 0) {
-    alert("Informe ao menos uma mensagem-gatilho e uma resposta.");
-    return;
-  }
+  if (keywords.length === 0) return flagInvalid(keywordsInput, "Informe ao menos uma mensagem-gatilho.");
+  if (responses.length === 0) return flagInvalid(responsesInput, "Informe ao menos uma resposta.");
 
-  const payload = {
-    keywords,
-    responses,
-    cooldownMinutes,
-    replyToTrigger,
-    reactionEmoji,
-    trackMetrics,
-    useUrlButton,
-    buttonText,
-    enabled,
-  };
+  const payload = { keywords, responses, cooldownMinutes, replyToTrigger, reactionEmoji, trackMetrics, useUrlButton, buttonText, enabled };
+  const editing = !!state.editingRuleId;
 
-  ruleSaveBtn.disabled = true;
+  setBusy(ruleSaveBtn, true, "Salvando…");
   try {
-    let r;
-    if (state.editingRuleId) {
-      r = await fetch(`/rules/${encodeURIComponent(state.editingRuleId)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      r = await fetch("/rules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    }
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || "Não foi possível salvar a regra.");
+    await api(editing ? `/rules/${encodeURIComponent(state.editingRuleId)}` : "/rules", {
+      method: editing ? "PUT" : "POST",
+      body: payload,
+    });
 
     closeRuleModal();
     await refreshRules();
+    notify.success(editing ? "Alterações salvas." : "A nova regra já está valendo.", { title: editing ? "Regra atualizada" : "Regra criada" });
   } catch (err) {
     console.error("saveRule falhou:", err);
-    alert(err.message);
+    notify.error(err.message, { title: "Não foi possível salvar a regra" });
   } finally {
-    ruleSaveBtn.disabled = false;
+    setBusy(ruleSaveBtn, false);
   }
 }
 
 export async function deleteRule(id) {
-  if (!confirm("Excluir esta regra?")) return;
-  await fetch(`/rules/${encodeURIComponent(id)}`, { method: "DELETE" });
+  const rule = state.allRules.find((r) => r.id === id);
+  const confirmed = await confirmDialog({
+    title: "Excluir esta regra?",
+    message: rule ? `Gatilhos: ${rule.keywords.slice(0, 3).join(", ")}${rule.keywords.length > 3 ? "…" : ""}\nEssa ação não pode ser desfeita.` : "Essa ação não pode ser desfeita.",
+    confirmText: "Excluir regra",
+    tone: "danger",
+  });
+  if (!confirmed) return;
+
+  try {
+    await api(`/rules/${encodeURIComponent(id)}`, { method: "DELETE" });
+    notify.success("A regra foi removida.", { title: "Regra excluída" });
+  } catch (err) {
+    notify.error(err.message, { title: "Não foi possível excluir" });
+  }
   refreshRules();
 }
 
 export function initRules() {
   useUrlButtonInput.addEventListener("change", applyUrlButtonVisibility);
   newRuleBtn.addEventListener("click", () => openRuleModal(null));
-  ruleCancelBtn.addEventListener("click", closeRuleModal);
   ruleSaveBtn.addEventListener("click", saveRule);
-  ruleModal.addEventListener("click", (e) => {
-    if (e.target === ruleModal) closeRuleModal();
-  });
+  bindModal(ruleModal, closeRuleModal);
 }

@@ -64,14 +64,41 @@ export function formatDateTime(ts) {
   });
 }
 
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+export function formatCurrency(value) {
+  return BRL.format(value || 0);
+}
+
 export function phoneFromJid(jid) {
   return (jid || "").split("@")[0];
+}
+
+/** Cor do avatar estável por nome (6 gradientes roxos/rosados definidos no CSS). */
+function avatarHue(text) {
+  let hash = 0;
+  for (const ch of String(text)) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+  return hash % 6;
+}
+
+export function initialOf(text) {
+  const first = [...String(text || "").trim()][0];
+  return (first ?? "?").toUpperCase();
+}
+
+/** Avatar circular: foto real do grupo (se houver) ou inicial sobre gradiente. */
+export function avatarHtml(name, { pictureUrl = null, size = "" } = {}) {
+  const cls = `avatar${size ? ` avatar-${size}` : ""}`;
+  const initial = `<span class="${cls}" data-h="${avatarHue(name)}">${escapeHtml(initialOf(name))}</span>`;
+  if (!pictureUrl) return initial;
+  // Se a foto falhar ao carregar, volta para a inicial.
+  return `<img class="${cls}" data-h="${avatarHue(name)}" src="${pictureUrl}" alt="" loading="lazy" onerror="this.outerHTML=this.dataset.fallback" data-fallback="${escapeHtml(initial)}">`;
 }
 
 export function callerBadgeHtml(count) {
   if (count <= 0) return "";
   const tier = count >= 4 ? "hot" : count >= 2 ? "warm" : "cold";
-  const emoji = tier === "hot" ? "🔥" : "🔁";
+  const iconName = tier === "hot" ? "flame" : "repeat";
   const title = `Já chamou ${count}x (conta de novo só depois de 2h da última chamada)`;
-  return ` <span class="caller-badge caller-badge-${tier}" title="${title}">${emoji} ${count}x</span>`;
+  return `<span class="badge caller-badge caller-badge-${tier}" title="${title}"><svg class="icon" aria-hidden="true"><use href="#i-${iconName}"/></svg>${count}x</span>`;
 }

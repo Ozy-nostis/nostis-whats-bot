@@ -3,94 +3,253 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bot WhatsApp - Controle</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0812">
+  <title>Brinzy · Painel de Controle</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a78bfa'/%3E%3Cstop offset='1' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cg fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 9V5.5'/%3E%3Crect x='7' y='9' width='18' height='14' rx='4'/%3E%3Cpath d='M12.5 15v2M19.5 15v2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <!-- Ícones (estilo Lucide) — usados via <svg class="icon"><use href="#i-nome"/></svg> -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-bot" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+    <symbol id="i-sticker" viewBox="0 0 24 24"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="M8 13h.01"/><path d="M16 13h.01"/><path d="M10 16s.8 1 2 1c1.3 0 2-1 2-1"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></symbol>
+    <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol>
+    <symbol id="i-reply" viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></symbol>
+    <symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-dollar" viewBox="0 0 24 24"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+    <symbol id="i-list-checks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+    <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+    <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  </svg>
+
+  <div id="offline-banner" class="offline-banner hidden" role="alert">
+    <svg class="icon"><use href="#i-wifi-off"/></svg>
+    <span><strong>Sem conexão com o bot.</strong> Verifique se o programa continua aberto — tentando reconectar automaticamente…</span>
+  </div>
+
   <div class="layout">
-    <aside class="panel groups-panel">
-      <h2>Grupos</h2>
-      <div id="wa-status" class="wa-status">Verificando conexão...</div>
-      <div class="groups-toolbar">
-        <button id="refresh-groups-btn" class="secondary">🔄 Atualizar</button>
+    <!-- ============ Barra lateral: conexão + grupos ============ -->
+    <aside id="sidebar" class="sidebar" aria-label="Grupos do WhatsApp">
+      <div class="brand">
+        <div class="brand-mark"><svg class="icon"><use href="#i-bot"/></svg></div>
+        <div class="brand-text">
+          <strong>Brinzy</strong>
+          <span>Automação para WhatsApp</span>
+        </div>
+        <button id="sidebar-close" class="icon-btn only-mobile" type="button" aria-label="Fechar lista de grupos">
+          <svg class="icon"><use href="#i-x"/></svg>
+        </button>
       </div>
-      <div class="groups-toolbar">
-        <button id="select-all-groups-btn" class="secondary">Selecionar todos</button>
-        <button id="deselect-all-groups-btn" class="secondary">Desmarcar todos</button>
+
+      <div id="wa-status" class="conn" data-state="checking">
+        <span class="conn-dot"></span>
+        <div class="conn-text">
+          <strong id="wa-status-title">Verificando conexão…</strong>
+          <small id="wa-status-sub">Aguarde um instante</small>
+        </div>
       </div>
-      <input id="search" type="text" placeholder="Filtrar grupos..." />
-      <ul id="groups-list" class="groups-list">
-        <li class="empty">Carregando...</li>
+
+      <div class="sidebar-head">
+        <div class="section-title">
+          <h2>Grupos</h2>
+          <span id="groups-total" class="pill">0</span>
+          <button id="refresh-groups-btn" class="icon-btn icon-btn-sm" type="button" title="Atualizar lista de grupos" aria-label="Atualizar lista de grupos">
+            <svg class="icon"><use href="#i-refresh"/></svg>
+          </button>
+        </div>
+
+        <label class="search">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <input id="search" class="input" type="search" placeholder="Filtrar grupos…" autocomplete="off" spellcheck="false">
+        </label>
+
+        <div class="toolbar-row">
+          <button id="select-all-groups-btn" class="btn btn-ghost btn-sm" type="button">
+            <svg class="icon"><use href="#i-list-checks"/></svg> Selecionar todos
+          </button>
+          <button id="deselect-all-groups-btn" class="btn btn-ghost btn-sm" type="button">
+            <svg class="icon"><use href="#i-x"/></svg> Limpar
+          </button>
+        </div>
+      </div>
+
+      <ul id="groups-list" class="group-list scroll">
+        <li class="skeleton-row"></li><li class="skeleton-row"></li><li class="skeleton-row"></li><li class="skeleton-row"></li>
       </ul>
-      <div class="footer-info">
-        <span id="groups-count">0 selecionados</span>
+
+      <div class="sidebar-foot">
+        <div class="meter" aria-hidden="true"><span id="groups-meter"></span></div>
+        <span id="groups-count">0 ativos</span>
       </div>
     </aside>
 
-    <div id="panel-resizer" class="panel-resizer" title="Arraste pra ajustar a largura"></div>
+    <div id="panel-resizer" class="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Ajustar largura da lista de grupos" tabindex="0" title="Arraste para ajustar (duplo clique restaura)"></div>
+    <div id="sidebar-scrim" class="sidebar-scrim" hidden></div>
 
-    <main class="panel main-panel">
-      <div class="controls-row">
-        <h1>Controle do Bot</h1>
-        <div id="status" class="status">Carregando...</div>
-        <div class="profile-bar">
-          <select id="profile-select" title="Perfil ativo"></select>
-          <button id="manage-profiles-btn" class="secondary">👤 Perfis</button>
-        </div>
-        <button id="settings-btn" class="secondary">⚙️ Configurações</button>
-        <div class="buttons">
-          <button id="on">▶ Ligar</button>
-          <button id="off">⏸ Desligar</button>
-        </div>
-      </div>
+    <!-- ============ Conteúdo principal ============ -->
+    <main class="main">
+      <header class="topbar">
+        <button id="sidebar-open" class="icon-btn only-mobile" type="button" aria-label="Abrir lista de grupos">
+          <svg class="icon"><use href="#i-menu"/></svg>
+        </button>
 
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="rules-panel">Regras de Resposta</button>
-        <button class="tab-btn" data-tab="campaigns-panel">📢 Propaganda</button>
-        <button class="tab-btn" data-tab="metrics-panel">📊 Métricas</button>
-      </div>
-
-      <section id="rules-panel" class="tab-panel rules-section">
-        <div class="rules-header">
-          <h2>Regras de Resposta Automática</h2>
-          <button id="new-rule-btn">+ Nova regra</button>
+        <div class="topbar-title">
+          <h1>Controle do Bot</h1>
+          <p>Respostas automáticas, campanhas e métricas em um só lugar.</p>
         </div>
-        <ul id="rules-list" class="rules-list">
-          <li class="empty">Carregando...</li>
+
+        <div class="topbar-actions">
+          <div class="profile-switch" title="Perfil ativo">
+            <svg class="icon"><use href="#i-user"/></svg>
+            <select id="profile-select" class="select" aria-label="Perfil ativo"></select>
+            <button id="manage-profiles-btn" class="btn btn-ghost btn-sm" type="button">Gerenciar</button>
+          </div>
+
+          <button id="settings-btn" class="icon-btn" type="button" title="Configurações" aria-label="Configurações">
+            <svg class="icon"><use href="#i-sliders"/></svg>
+          </button>
+
+          <div class="bot-control">
+            <div id="status" class="status-pill" data-state="checking" role="status" aria-live="polite">
+              <span class="status-dot"></span>
+              <span id="status-text">Carregando…</span>
+            </div>
+            <button id="toggle-bot" class="btn btn-power" type="button" disabled>
+              <svg class="icon"><use href="#i-power"/></svg>
+              <span>Ligar bot</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="Seções do painel">
+        <span class="tab-indicator" aria-hidden="true"></span>
+        <button class="tab-btn active" role="tab" id="tab-rules" aria-selected="true" aria-controls="rules-panel" data-tab="rules-panel" type="button">
+          <svg class="icon"><use href="#i-message"/></svg> Regras de Resposta
+          <span class="tab-count" id="rules-count">0</span>
+        </button>
+        <button class="tab-btn" role="tab" id="tab-campaigns" aria-selected="false" aria-controls="campaigns-panel" data-tab="campaigns-panel" type="button">
+          <svg class="icon"><use href="#i-megaphone"/></svg> Propaganda
+          <span class="tab-count" id="campaigns-count">0</span>
+        </button>
+        <button class="tab-btn" role="tab" id="tab-metrics" aria-selected="false" aria-controls="metrics-panel" data-tab="metrics-panel" type="button">
+          <svg class="icon"><use href="#i-chart"/></svg> Métricas
+          <span class="tab-count" id="metrics-count">0</span>
+        </button>
+      </nav>
+
+      <!-- Regras -->
+      <section id="rules-panel" class="tab-panel" role="tabpanel" aria-labelledby="tab-rules">
+        <div class="section-head">
+          <div>
+            <h2>Regras de resposta automática</h2>
+            <p>Quando alguém envia uma mensagem-gatilho, o bot responde sozinho.</p>
+          </div>
+          <button id="new-rule-btn" class="btn btn-primary" type="button">
+            <svg class="icon"><use href="#i-plus"/></svg> Nova regra
+          </button>
+        </div>
+        <ul id="rules-list" class="card-grid scroll">
+          <li class="skeleton-card"></li><li class="skeleton-card"></li><li class="skeleton-card"></li>
         </ul>
       </section>
 
-      <section id="campaigns-panel" class="tab-panel rules-section hidden">
-        <div class="rules-header">
-          <h2>Campanhas de Propaganda</h2>
-          <button id="new-campaign-btn">+ Nova campanha</button>
+      <!-- Campanhas -->
+      <section id="campaigns-panel" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-campaigns">
+        <div class="section-head">
+          <div>
+            <h2>Campanhas de propaganda</h2>
+            <p>Dispare uma mensagem, imagem ou figurinha para vários grupos de uma vez.</p>
+          </div>
+          <button id="new-campaign-btn" class="btn btn-primary" type="button">
+            <svg class="icon"><use href="#i-plus"/></svg> Nova campanha
+          </button>
         </div>
-        <ul id="campaigns-list" class="rules-list">
-          <li class="empty">Carregando...</li>
+        <ul id="campaigns-list" class="card-grid scroll">
+          <li class="skeleton-card"></li><li class="skeleton-card"></li><li class="skeleton-card"></li>
         </ul>
       </section>
 
-      <section id="metrics-panel" class="tab-panel metrics-section hidden">
-        <div class="rules-header">
-          <h2>Métricas de Chamadas</h2>
-          <input id="metrics-search" type="text" placeholder="Filtrar por grupo ou pessoa..." />
+      <!-- Métricas -->
+      <section id="metrics-panel" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-metrics">
+        <div class="section-head">
+          <div>
+            <h2>Métricas de chamadas</h2>
+            <p>Acompanhe quem disparou um gatilho, quem chamou no privado e o que virou corrida.</p>
+          </div>
+          <label class="search search-inline">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input id="metrics-search" class="input" type="search" placeholder="Filtrar por grupo ou pessoa…" autocomplete="off" spellcheck="false">
+          </label>
         </div>
-        <div id="metrics-summary" class="metrics-summary"></div>
-        <div class="metrics-table-wrap">
-          <table class="metrics-table">
+
+        <div class="stats">
+          <div class="stat tone-violet">
+            <span class="stat-icon"><svg class="icon"><use href="#i-zap"/></svg></span>
+            <div class="stat-body"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Gatilhos disparados</span></div>
+          </div>
+          <div class="stat tone-fuchsia">
+            <span class="stat-icon"><svg class="icon"><use href="#i-message"/></svg></span>
+            <div class="stat-body"><span class="stat-value" id="stat-private">0</span><span class="stat-label" id="stat-private-label">Chamaram no privado</span></div>
+          </div>
+          <div class="stat tone-emerald">
+            <span class="stat-icon"><svg class="icon"><use href="#i-check-circle"/></svg></span>
+            <div class="stat-body"><span class="stat-value" id="stat-closed">0</span><span class="stat-label">Corridas fechadas</span></div>
+          </div>
+          <div class="stat tone-amber">
+            <span class="stat-icon"><svg class="icon"><use href="#i-dollar"/></svg></span>
+            <div class="stat-body"><span class="stat-value" id="stat-revenue">R$ 0,00</span><span class="stat-label">Faturamento (fechadas)</span></div>
+          </div>
+        </div>
+
+        <div class="table-card scroll">
+          <table class="table">
             <thead>
               <tr>
                 <th>Grupo</th>
                 <th>Pessoa</th>
                 <th>Gatilho às</th>
                 <th>Chamou no privado</th>
-                <th>Valor (R$)</th>
+                <th>Valor</th>
                 <th>Status</th>
-                <th></th>
+                <th><span class="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody id="metrics-tbody">
-              <tr><td colspan="7" class="empty">Carregando...</td></tr>
+              <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -99,185 +258,306 @@
     </main>
   </div>
 
-  <div id="rule-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2 id="rule-modal-title">Nova regra</h2>
+  <!-- ============ Modal: regra ============ -->
+  <div id="rule-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="rule-modal-title">
+    <div class="modal-card modal-lg">
+      <header class="modal-head">
+        <div>
+          <h2 id="rule-modal-title">Nova regra</h2>
+          <p>Defina quando o bot deve responder e de que forma.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
 
-      <label for="rule-keywords">Mensagens que ativam o gatilho (uma por linha, precisa ser exatamente igual)</label>
-      <textarea id="rule-keywords" rows="4" placeholder="uber on&#10;chama o motorista"></textarea>
+      <div class="modal-body">
+        <div class="field">
+          <div class="label-row">
+            <label for="rule-keywords">Mensagens que ativam o gatilho</label>
+            <span class="counter" id="rule-keywords-count">0 gatilhos</span>
+          </div>
+          <textarea id="rule-keywords" class="input" rows="3" data-autofocus placeholder="uber on&#10;chama o motorista"></textarea>
+          <p class="hint">Uma por linha. A mensagem precisa ser exatamente igual.</p>
+        </div>
 
-      <label for="rule-responses">Respostas possíveis (uma por linha, escolhida aleatoriamente)</label>
-      <textarea id="rule-responses" rows="4" placeholder="On, chama pv&#10;pv"></textarea>
+        <div class="field">
+          <div class="label-row">
+            <label for="rule-responses">Respostas possíveis</label>
+            <span class="counter" id="rule-responses-count">0 respostas</span>
+          </div>
+          <textarea id="rule-responses" class="input" rows="3" placeholder="On, chama pv&#10;pv"></textarea>
+          <p class="hint">Uma por linha. O bot escolhe uma delas aleatoriamente.</p>
+        </div>
 
-      <label for="rule-cooldown">Cooldown entre respostas (minutos)</label>
-      <input id="rule-cooldown" type="number" min="0" step="1" value="0" />
+        <div class="field-row">
+          <div class="field">
+            <label for="rule-cooldown">Cooldown entre respostas</label>
+            <div class="input-suffix">
+              <input id="rule-cooldown" class="input" type="number" min="0" step="1" value="0">
+              <span>min</span>
+            </div>
+            <p class="hint">0 = sem cooldown.</p>
+          </div>
 
-      <div id="rule-reply-mode-wrap">
-        <label>Como enviar a resposta</label>
-        <div class="media-options">
-          <label class="radio-label">
-            <input type="radio" name="rule-reply-mode" value="quote" checked>
-            Respondendo a mensagem (reply)
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="rule-reply-mode" value="plain">
-            Mensagem solta no grupo
-          </label>
+          <div id="rule-reply-mode-wrap" class="field">
+            <span class="label">Como enviar a resposta</span>
+            <div class="segmented segmented-stack" role="radiogroup" aria-label="Como enviar a resposta">
+              <label><input type="radio" name="rule-reply-mode" value="quote" checked><span><svg class="icon"><use href="#i-reply"/></svg> Responder a mensagem</span></label>
+              <label><input type="radio" name="rule-reply-mode" value="plain"><span><svg class="icon"><use href="#i-message"/></svg> Mensagem solta</span></label>
+            </div>
+          </div>
+        </div>
+
+        <label class="option">
+          <span class="option-text">
+            <strong>Botão que leva direto ao privado <span class="badge badge-warning">Experimental</span></strong>
+            <small>Envia a resposta como um botão que abre a conversa privada.</small>
+          </span>
+          <span class="switch"><input id="rule-use-url-button" type="checkbox"><span class="switch-track"></span></span>
+        </label>
+
+        <div id="rule-button-text-wrap" class="hidden">
+          <div class="callout callout-warning">
+            <svg class="icon"><use href="#i-alert"/></svg>
+            <p>Usa um recurso não-oficial da lib (finge ser conta Business para desenhar o botão). Pode renderizar errado em alguns aparelhos ou chamar atenção indevida da Meta para essa conta — teste num grupo de teste antes de usar para valer.</p>
+          </div>
+          <div class="field" style="margin-top:14px">
+            <label for="rule-button-text">Texto do botão</label>
+            <input id="rule-button-text" class="input" type="text" placeholder="📲 Chama no PV">
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">Reagir à mensagem-gatilho <em>(opcional)</em></span>
+          <div class="chip-choices" role="radiogroup" aria-label="Reação">
+            <label><input type="radio" name="rule-reaction" value="" checked><span>Nenhuma</span></label>
+            <label><input type="radio" name="rule-reaction" value="❤️"><span class="emoji">❤️</span></label>
+            <label><input type="radio" name="rule-reaction" value="👍"><span class="emoji">👍</span></label>
+            <label><input type="radio" name="rule-reaction" value="🙏"><span class="emoji">🙏</span></label>
+            <label><input type="radio" name="rule-reaction" value="🚀"><span class="emoji">🚀</span></label>
+            <label><input type="radio" name="rule-reaction" value="🔥"><span class="emoji">🔥</span></label>
+          </div>
+        </div>
+
+        <label class="option">
+          <span class="option-text">
+            <strong>Rastrear métricas</strong>
+            <small>Registra grupo, pessoa e horário — depois dá para ver quem chamou no privado.</small>
+          </span>
+          <span class="switch"><input id="rule-track-metrics" type="checkbox"><span class="switch-track"></span></span>
+        </label>
+
+        <label class="option">
+          <span class="option-text">
+            <strong>Regra ativa</strong>
+            <small>Regras desativadas ficam salvas, mas o bot não responde a elas.</small>
+          </span>
+          <span class="switch"><input id="rule-enabled" type="checkbox" checked><span class="switch-track"></span></span>
+        </label>
+      </div>
+
+      <footer class="modal-foot">
+        <span class="foot-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> salva</span>
+        <button id="rule-cancel" class="btn btn-ghost" type="button" data-close>Cancelar</button>
+        <button id="rule-save" class="btn btn-primary" type="button" data-submit>Salvar regra</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ Modal: campanha ============ -->
+  <div id="campaign-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="campaign-modal-title">
+    <div class="modal-card modal-lg">
+      <header class="modal-head">
+        <div>
+          <h2 id="campaign-modal-title">Nova campanha</h2>
+          <p>Monte a mensagem e escolha os grupos que vão recebê-la.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
+
+      <div class="modal-body">
+        <div class="field">
+          <label for="campaign-name">Nome da campanha</label>
+          <input id="campaign-name" class="input" type="text" data-autofocus placeholder="Ex: Promoção de sexta-feira" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="campaign-message">Mensagem</label>
+            <span class="counter" id="campaign-message-count">0 caracteres</span>
+          </div>
+          <textarea id="campaign-message" class="input" rows="3" placeholder="Texto da propaganda…"></textarea>
+        </div>
+
+        <div class="field">
+          <span class="label">Mídia <em>(opcional)</em></span>
+          <div class="segmented" role="radiogroup" aria-label="Tipo de mídia">
+            <label><input type="radio" name="media-type" value="none" checked><span><svg class="icon"><use href="#i-message"/></svg> Sem mídia</span></label>
+            <label><input type="radio" name="media-type" value="sticker"><span><svg class="icon"><use href="#i-sticker"/></svg> Figurinha</span></label>
+            <label><input type="radio" name="media-type" value="image"><span><svg class="icon"><use href="#i-image"/></svg> Imagem com legenda</span></label>
+          </div>
+
+          <div id="campaign-media-panel" class="media-panel hidden">
+            <div id="campaign-sticker-source" class="hidden">
+              <button type="button" id="campaign-pick-from-gallery-btn" class="btn btn-secondary btn-sm">
+                <svg class="icon"><use href="#i-image"/></svg> Escolher da galeria
+              </button>
+              <span class="or-divider">ou envie um arquivo abaixo</span>
+            </div>
+
+            <label id="campaign-dropzone" class="dropzone" for="campaign-media-file">
+              <svg class="icon"><use href="#i-upload"/></svg>
+              <span><strong>Clique para escolher</strong> ou arraste uma imagem até aqui</span>
+            </label>
+            <input id="campaign-media-file" class="sr-only" type="file" accept="image/*">
+
+            <div id="campaign-media-preview" class="media-preview hidden">
+              <img id="campaign-media-img" alt="Pré-visualização da mídia">
+              <div>
+                <strong>Mídia selecionada</strong>
+                <button id="campaign-media-remove" type="button" class="btn btn-danger btn-sm">
+                  <svg class="icon"><use href="#i-trash"/></svg> Remover mídia
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="campaign-interval">Intervalo entre envios</label>
+          <div class="input-suffix input-suffix-narrow">
+            <input id="campaign-interval" class="input" type="number" min="1" step="1" value="5">
+            <span>seg</span>
+          </div>
+          <p class="hint">Tempo de espera entre um grupo e outro — ajuda a evitar bloqueios.</p>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <span class="label">Grupos de destino</span>
+            <span class="counter" id="campaign-groups-count">0 selecionado(s)</span>
+          </div>
+          <div class="picker">
+            <div class="picker-head">
+              <label class="search">
+                <svg class="icon"><use href="#i-search"/></svg>
+                <input id="campaign-group-search" class="input" type="search" placeholder="Filtrar grupos…" autocomplete="off" spellcheck="false">
+              </label>
+              <button id="campaign-select-visible" type="button" class="btn btn-ghost btn-sm">Marcar visíveis</button>
+              <button id="campaign-clear-groups" type="button" class="btn btn-ghost btn-sm">Limpar</button>
+            </div>
+            <ul id="campaign-groups-list" class="group-list scroll"></ul>
+          </div>
         </div>
       </div>
 
-      <label class="checkbox-label">
-        <input id="rule-use-url-button" type="checkbox" />
-        🔘 Enviar como botão que leva direto pro privado (experimental)
-      </label>
-      <p class="warning-text">
-        ⚠️ Usa um recurso não-oficial da lib (finge ser conta Business pra desenhar
-        o botão). Pode renderizar errado em alguns aparelhos ou chamar atenção
-        indevida da Meta pra essa conta — teste num grupo de teste antes de usar
-        pra valer.
-      </p>
-      <div id="rule-button-text-wrap" class="hidden">
-        <label for="rule-button-text">Texto do botão</label>
-        <input id="rule-button-text" type="text" placeholder="📲 Chama no PV" />
-      </div>
-
-      <label>Reagir à mensagem-gatilho (opcional)</label>
-      <div class="reaction-options">
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="" checked>
-          <span>Nenhuma</span>
-        </label>
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="❤️">
-          <span class="emoji">❤️</span>
-        </label>
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="👍">
-          <span class="emoji">👍</span>
-        </label>
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="🙏">
-          <span class="emoji">🙏</span>
-        </label>
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="🚀">
-          <span class="emoji">🚀</span>
-        </label>
-        <label class="reaction-choice">
-          <input type="radio" name="rule-reaction" value="🔥">
-          <span class="emoji">🔥</span>
-        </label>
-      </div>
-
-      <label class="checkbox-label">
-        <input id="rule-track-metrics" type="checkbox" />
-        Rastrear métricas (registra grupo, pessoa e horário; depois é possível ver quem chamou no privado)
-      </label>
-
-      <label class="checkbox-label">
-        <input id="rule-enabled" type="checkbox" checked />
-        Regra ativa
-      </label>
-
-      <div class="modal-buttons">
-        <button id="rule-cancel" class="secondary">Cancelar</button>
-        <button id="rule-save">Salvar</button>
-      </div>
+      <footer class="modal-foot">
+        <span class="foot-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> salva</span>
+        <button id="campaign-cancel" class="btn btn-ghost" type="button" data-close>Cancelar</button>
+        <button id="campaign-save" class="btn btn-primary" type="button" data-submit>Salvar campanha</button>
+      </footer>
     </div>
   </div>
 
-  <div id="campaign-modal" class="modal hidden">
-    <div class="modal-content campaign-modal-content">
-      <h2 id="campaign-modal-title">Nova campanha</h2>
+  <!-- ============ Modal: perfis ============ -->
+  <div id="profiles-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="profiles-modal-title">
+    <div class="modal-card modal-lg">
+      <header class="modal-head">
+        <div>
+          <h2 id="profiles-modal-title">Perfis</h2>
+          <p>Cada perfil tem suas próprias regras, campanhas e grupos habilitados.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
 
-      <label for="campaign-name">Nome da campanha</label>
-      <input id="campaign-name" type="text" placeholder="Ex: Promoção de sexta-feira" />
+      <div class="modal-body">
+        <ul id="profiles-list" class="stack-list"></ul>
 
-      <label for="campaign-message">Mensagem</label>
-      <textarea id="campaign-message" rows="3" placeholder="Texto da propaganda..."></textarea>
-
-      <label>Mídia (opcional)</label>
-      <div class="media-options">
-        <label class="radio-label"><input type="radio" name="media-type" value="none" checked> Sem mídia</label>
-        <label class="radio-label"><input type="radio" name="media-type" value="sticker"> Figurinha</label>
-        <label class="radio-label"><input type="radio" name="media-type" value="image"> Imagem com legenda</label>
+        <div class="panel-box">
+          <h3>Novo perfil</h3>
+          <div class="field-row">
+            <div class="field">
+              <label for="new-profile-name">Nome</label>
+              <input id="new-profile-name" class="input" type="text" placeholder="Nome do novo perfil" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="new-profile-clone-from">Começar a partir de</label>
+              <select id="new-profile-clone-from" class="select"></select>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="campaign-sticker-source" class="sticker-source-options hidden">
-        <button type="button" id="campaign-pick-from-gallery-btn" class="secondary">🖼️ Escolher da galeria</button>
-        <span class="or-divider">ou envie um arquivo abaixo</span>
-      </div>
-      <input id="campaign-media-file" type="file" accept="image/*" class="hidden" />
-      <div id="campaign-media-preview" class="media-preview hidden">
-        <img id="campaign-media-img" alt="Pré-visualização" />
-        <button id="campaign-media-remove" type="button" class="secondary">Remover mídia</button>
-      </div>
 
-      <label for="campaign-interval">Intervalo entre envios (segundos)</label>
-      <input id="campaign-interval" type="number" min="1" step="1" value="5" />
-
-      <label>Grupos de destino desta campanha</label>
-      <input id="campaign-group-search" type="text" placeholder="Filtrar grupos..." />
-      <ul id="campaign-groups-list" class="groups-list campaign-groups-list"></ul>
-      <div class="footer-info"><span id="campaign-groups-count">0 selecionado(s)</span></div>
-
-      <div class="modal-buttons">
-        <button id="campaign-cancel" class="secondary">Cancelar</button>
-        <button id="campaign-save">Salvar</button>
-      </div>
+      <footer class="modal-foot">
+        <button id="profiles-close" class="btn btn-ghost" type="button" data-close>Fechar</button>
+        <button id="create-profile-btn" class="btn btn-primary" type="button">
+          <svg class="icon"><use href="#i-plus"/></svg> Criar perfil
+        </button>
+      </footer>
     </div>
   </div>
 
-  <div id="profiles-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Perfis</h2>
-      <p class="gallery-hint">Cada perfil tem suas próprias regras, campanhas e grupos habilitados.</p>
-      <ul id="profiles-list" class="rules-list profiles-list"></ul>
+  <!-- ============ Modal: configurações ============ -->
+  <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-card modal-lg">
+      <header class="modal-head">
+        <div>
+          <h2 id="settings-modal-title">Configurações</h2>
+          <p>Ajustes gerais do bot, valem para todos os perfis.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
 
-      <label for="new-profile-name">Novo perfil</label>
-      <input id="new-profile-name" type="text" placeholder="Nome do novo perfil" />
+      <div class="modal-body">
+        <label class="option">
+          <span class="option-text">
+            <strong>Ignorar contatos com “ADM” no nome</strong>
+            <small>Evita responder quem também é operador.</small>
+          </span>
+          <span class="switch"><input id="settings-ignore-adm" type="checkbox"><span class="switch-track"></span></span>
+        </label>
 
-      <label for="new-profile-clone-from">Começar a partir de</label>
-      <select id="new-profile-clone-from"></select>
+        <div class="field">
+          <label for="settings-no-reply-numbers">Números sem resposta</label>
+          <textarea id="settings-no-reply-numbers" class="input mono" rows="4" placeholder="5511999999999"></textarea>
+          <p class="hint">Um por linha. O gatilho dispara e conta na métrica, mas o bot não responde.</p>
+        </div>
 
-      <div class="modal-buttons">
-        <button id="profiles-close" class="secondary">Fechar</button>
-        <button id="create-profile-btn">+ Criar perfil</button>
+        <div class="field">
+          <span class="label">Números banidos</span>
+          <ul id="settings-bans-list" class="stack-list stack-list-compact"></ul>
+        </div>
       </div>
+
+      <footer class="modal-foot">
+        <span class="foot-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> salva</span>
+        <button id="settings-cancel" class="btn btn-ghost" type="button" data-close>Cancelar</button>
+        <button id="settings-save" class="btn btn-primary" type="button" data-submit>Salvar</button>
+      </footer>
     </div>
   </div>
 
-  <div id="settings-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Configurações</h2>
+  <!-- ============ Modal: galeria de figurinhas ============ -->
+  <div id="sticker-gallery-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="sticker-gallery-title">
+    <div class="modal-card modal-xl">
+      <header class="modal-head">
+        <div>
+          <h2 id="sticker-gallery-title">Galeria de figurinhas</h2>
+          <p>Coletadas automaticamente das figurinhas que circulam nos grupos do bot.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
 
-      <label class="checkbox-label">
-        <input id="settings-ignore-adm" type="checkbox" />
-        Ignorar contatos com "ADM" no nome (evita responder quem também é operador)
-      </label>
-
-      <label for="settings-no-reply-numbers">Números sem resposta (um por linha; o gatilho dispara e conta na métrica, mas o bot não responde)</label>
-      <textarea id="settings-no-reply-numbers" rows="4" placeholder="5511999999999"></textarea>
-
-      <label>Números banidos</label>
-      <ul id="settings-bans-list" class="rules-list settings-bans-list"></ul>
-
-      <div class="modal-buttons">
-        <button id="settings-cancel" class="secondary">Cancelar</button>
-        <button id="settings-save">Salvar</button>
+      <div class="modal-body">
+        <div id="sticker-gallery-grid" class="sticker-grid scroll"></div>
       </div>
+
+      <footer class="modal-foot">
+        <button id="sticker-gallery-cancel" class="btn btn-ghost" type="button" data-close>Fechar</button>
+      </footer>
     </div>
   </div>
 
-  <div id="sticker-gallery-modal" class="modal hidden">
-    <div class="modal-content sticker-gallery-content">
-      <h2>Galeria de Figurinhas</h2>
-      <p class="gallery-hint">Coletadas automaticamente das figurinhas que circulam nos grupos do bot.</p>
-      <div id="sticker-gallery-grid" class="sticker-gallery-grid"></div>
-      <div class="modal-buttons">
-        <button id="sticker-gallery-cancel" class="secondary">Fechar</button>
-      </div>
-    </div>
-  </div>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="false"></div>
 
   <script src="/app.js"></script>
 </body>

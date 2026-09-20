@@ -25,7 +25,7 @@ export function startDashboard(port = CONFIG.defaultPort): void {
         return new Response(WEB_ASSETS.css, {
           headers: {
             "Content-Type": "text/css; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "no-cache",
           },
         });
       }
@@ -34,7 +34,7 @@ export function startDashboard(port = CONFIG.defaultPort): void {
         return new Response(WEB_ASSETS.js, {
           headers: {
             "Content-Type": "text/javascript; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "no-cache",
           },
         });
       }

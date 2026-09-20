@@ -1,9 +1,10 @@
 import { state } from "./state.js";
+import { api } from "./api.js";
 import { escapeHtml } from "./utils.js";
+import { icon, notify, confirmDialog, bindModal, openModal, closeModal, emptyState } from "./ui.js";
 
 const stickerGalleryModal = document.getElementById("sticker-gallery-modal");
 const stickerGalleryGrid = document.getElementById("sticker-gallery-grid");
-const stickerGalleryCancelBtn = document.getElementById("sticker-gallery-cancel");
 const pickFromGalleryBtn = document.getElementById("campaign-pick-from-gallery-btn");
 
 const campaignMediaFileInput = document.getElementById("campaign-media-file");
@@ -11,15 +12,18 @@ const campaignMediaPreview = document.getElementById("campaign-media-preview");
 const campaignMediaImg = document.getElementById("campaign-media-img");
 
 export async function openStickerGallery() {
-  stickerGalleryGrid.innerHTML = `<p class="gallery-empty">Carregando...</p>`;
-  stickerGalleryModal.classList.remove("hidden");
+  stickerGalleryGrid.innerHTML = Array.from({ length: 8 }, () => `<div class="skeleton-card" style="height:auto;aspect-ratio:1;border-radius:14px"></div>`).join("");
+  openModal(stickerGalleryModal);
+
   try {
-    const r = await fetch("/stickers");
-    const { stickers } = await r.json();
+    const { stickers } = await api("/stickers");
 
     if (stickers.length === 0) {
-      stickerGalleryGrid.innerHTML =
-        `<p class="gallery-empty">Nenhuma figurinha coletada ainda. Elas aparecem aqui conforme circulam nos grupos do bot.</p>`;
+      stickerGalleryGrid.innerHTML = emptyState({
+        iconName: "sticker",
+        title: "Nenhuma figurinha coletada ainda",
+        text: "Elas aparecem aqui conforme circulam nos grupos do bot.",
+      });
       return;
     }
 
@@ -28,9 +32,9 @@ export async function openStickerGallery() {
         (s) => `
         <div class="sticker-thumb-wrap">
           <button type="button" class="sticker-thumb" data-id="${s.id}" title="Visto em: ${escapeHtml(s.sourceGroupName)}">
-            <img src="/stickers/${encodeURIComponent(s.id)}/media" alt="">
+            <img src="/stickers/${encodeURIComponent(s.id)}/media" alt="Figurinha vista em ${escapeHtml(s.sourceGroupName)}" loading="lazy">
           </button>
-          <button type="button" class="sticker-thumb-delete" data-id="${s.id}" title="Remover da galeria">✕</button>
+          <button type="button" class="sticker-thumb-delete" data-id="${s.id}" title="Remover da galeria" aria-label="Remover da galeria">${icon("x")}</button>
         </div>`
       )
       .join("");
@@ -46,7 +50,7 @@ export async function openStickerGallery() {
     });
   } catch (err) {
     console.error("openStickerGallery falhou:", err);
-    stickerGalleryGrid.innerHTML = `<p class="gallery-empty">Falha ao carregar a galeria.</p>`;
+    stickerGalleryGrid.innerHTML = emptyState({ iconName: "wifi-off", title: "Falha ao carregar a galeria", text: err.message });
   }
 }
 
@@ -57,23 +61,35 @@ export function selectGallerySticker(id) {
   campaignMediaFileInput.value = "";
   campaignMediaImg.src = `/stickers/${encodeURIComponent(id)}/media`;
   campaignMediaPreview.classList.remove("hidden");
-  stickerGalleryModal.classList.add("hidden");
+  closeModal(stickerGalleryModal);
+  notify.success("A figurinha será usada nesta campanha.", { title: "Figurinha escolhida", duration: 2200 });
 }
 
 export async function deleteGallerySticker(id) {
-  if (!confirm("Remover esta figurinha da galeria?")) return;
-  await fetch(`/stickers/${encodeURIComponent(id)}`, { method: "DELETE" });
+  const confirmed = await confirmDialog({
+    title: "Remover figurinha da galeria?",
+    message: "Ela some da galeria, mas continua nos grupos onde já foi enviada.",
+    confirmText: "Remover",
+    tone: "danger",
+  });
+  if (!confirmed) return;
+
+  try {
+    await api(`/stickers/${encodeURIComponent(id)}`, { method: "DELETE" });
+  } catch (err) {
+    notify.error(err.message, { title: "Não foi possível remover" });
+    return;
+  }
+
   if (state.campaignPendingGalleryStickerId === id) {
     state.campaignPendingGalleryStickerId = null;
     campaignMediaPreview.classList.add("hidden");
   }
+  notify.success("A figurinha foi removida da galeria.", { duration: 2200 });
   openStickerGallery();
 }
 
 export function initStickers() {
   pickFromGalleryBtn.addEventListener("click", openStickerGallery);
-  stickerGalleryCancelBtn.addEventListener("click", () => stickerGalleryModal.classList.add("hidden"));
-  stickerGalleryModal.addEventListener("click", (e) => {
-    if (e.target === stickerGalleryModal) stickerGalleryModal.classList.add("hidden");
-  });
+  bindModal(stickerGalleryModal, () => closeModal(stickerGalleryModal));
 }
