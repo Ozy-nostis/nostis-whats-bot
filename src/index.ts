@@ -4,8 +4,10 @@ import { acquireLock } from "./core/single-instance";
 import { connectToWhatsApp } from "./core/connection";
 import { logger } from "./utils/logger";
 import { startDashboard } from "./core/dashboard";
+import { checkExpiration } from "./core/expiration";
 
 async function main() {
+  checkExpiration();
   ensureDirectories();
   acquireLock();
   startDashboard();
